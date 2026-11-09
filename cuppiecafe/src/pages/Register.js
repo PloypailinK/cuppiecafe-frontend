@@ -61,7 +61,7 @@ function Register() {
         throw new Error(message || "สมัครสมาชิกไม่สำเร็จ กรุณาลองใหม่");
       }
 
-      const data = await response.json();
+      await response.json();
 
       setSuccess(true);
       setName("");
