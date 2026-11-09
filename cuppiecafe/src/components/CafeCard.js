@@ -11,6 +11,18 @@ const cafeImages = [
   "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800",
   "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800",
   "https://images.unsplash.com/photo-1559925393-8be0ec4767c8?w=800",
+  "https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=800",
+  "https://images.unsplash.com/photo-1498804103079-a6351b050096?w=800",
+  "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=800",
+  "https://images.unsplash.com/photo-1511920170033-f8396924c348?w=800",
+  "https://images.unsplash.com/photo-1521017432531-fbd92d768814?w=800",
+  "https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=800",
+  "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=800",
+  "https://images.unsplash.com/photo-1511537190424-bbbab87ac5eb?w=800",
+  "https://images.unsplash.com/photo-1493857671505-72967e2e2760?w=800",
+  "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800",
+  "https://images.unsplash.com/photo-1559305616-3f99cd43e353?w=800",
+  "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800",
 ];
 
 const DEFAULT_IMAGE = cafeImages[0];
@@ -20,14 +32,16 @@ function getCafeImage(cafe) {
   if (cafe.image_url) return cafe.image_url;
   if (cafe.image) return cafe.image;
 
-  const id = cafe.fsq_id || cafe.id || cafe.name || "cafe";
+  const id = String(
+    cafe.fsq_id || cafe.id || cafe.name || "cafe"
+  );
 
-  const index = Array.from(String(id)).reduce(
-    (sum, char) => sum + char.charCodeAt(0),
+  const hash = Array.from(id).reduce(
+    (sum, char) => (sum * 31 + char.charCodeAt(0)) >>> 0,
     0
-  ) % cafeImages.length;
+  );
 
-  return cafeImages[index];
+  return cafeImages[hash % cafeImages.length];
 }
 
 function CafeCard({ cafe }) {
@@ -35,10 +49,8 @@ function CafeCard({ cafe }) {
   const { isLoggedIn } = useAuth();
   const navigate = useNavigate();
 
-  // รองรับทั้ง ID จาก Foursquare และข้อมูลเดิม
   const cafeId = cafe.id ?? cafe.fsq_id;
 
-  // ทำให้ข้อมูลที่บันทึก Favorites มี id เสมอ
   const normalizedCafe = {
     ...cafe,
     id: cafeId,
@@ -60,7 +72,11 @@ function CafeCard({ cafe }) {
       return;
     }
 
-    toggleFavorite(normalizedCafe);
+    // บันทึกรูปที่กำลังแสดงไปพร้อมกับข้อมูลร้าน
+    toggleFavorite({
+      ...normalizedCafe,
+      image_url: cafe.image_url || cafe.image || imageSrc,
+    });
   };
 
   const categoryNames = {
@@ -73,7 +89,6 @@ function CafeCard({ cafe }) {
     "Pet Friendly": "คาเฟ่สัตว์เลี้ยง",
   };
 
-  // รองรับ ID ทั้งตัวเลขและ String
   const hasDetail = Boolean(cafeId);
 
   const location =

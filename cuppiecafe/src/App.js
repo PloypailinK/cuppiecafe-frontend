@@ -5,6 +5,7 @@ import { FavoritesProvider } from "./context/FavoritesContext";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
+import AdminLayout from "./components/AdminLayout";
 
 import Home from "./pages/Home";
 import Explore from "./pages/Explore";
@@ -16,6 +17,7 @@ import WriteReview from "./pages/WriteReview";
 
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminMembers from "./pages/AdminMembers";
+import AdminCafes from "./pages/AdminCafes";
 import AdminReviews from "./pages/AdminReviews";
 
 function App() {
@@ -24,16 +26,13 @@ function App() {
       <FavoritesProvider>
         <BrowserRouter>
           <Routes>
-            {/* หน้าหลัก */}
             <Route path="/" element={<Home />} />
             <Route path="/cafes" element={<Explore />} />
             <Route path="/cafes/:id" element={<CafeDetail />} />
 
-            {/* Authentication */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
 
-            {/* Member */}
             <Route
               path="/favorites"
               element={
@@ -52,55 +51,60 @@ function App() {
               }
             />
 
-            {/* Admin Dashboard */}
+            {/* ADMIN ROUTES */}
             <Route
               path="/admin"
               element={
                 <AdminRoute>
-                  <AdminDashboard />
+                  <AdminLayout>
+                    <AdminDashboard />
+                  </AdminLayout>
                 </AdminRoute>
               }
             />
 
-            {/* Admin Members */}
             <Route
               path="/admin/members"
               element={
                 <AdminRoute>
-                  <AdminMembers />
+                  <AdminLayout>
+                    <AdminMembers />
+                  </AdminLayout>
                 </AdminRoute>
               }
             />
 
-            {/* Admin Reviews */}
+            <Route
+              path="/admin/cafes"
+              element={
+                <AdminRoute>
+                  <AdminLayout>
+                    <AdminCafes />
+                  </AdminLayout>
+                </AdminRoute>
+              }
+            />
+
             <Route
               path="/admin/reviews"
               element={
                 <AdminRoute>
-                  <AdminReviews />
+                  <AdminLayout>
+                    <AdminReviews />
+                  </AdminLayout>
                 </AdminRoute>
               }
             />
 
-            {/* 404 */}
             <Route
               path="*"
               element={
                 <div className="min-h-screen bg-[#FAF8F4] flex flex-col items-center justify-center">
-                  <h1 className="text-4xl font-bold text-amber-900">
-                    404
-                  </h1>
-
+                  <h1 className="text-4xl font-bold text-amber-900">404</h1>
                   <p className="text-gray-600 mt-3">
                     ไม่พบหน้าที่คุณต้องการ
                   </p>
-
-                  <a
-                    href="/"
-                    className="mt-5 text-amber-900 underline"
-                  >
-                    กลับหน้าหลัก
-                  </a>
+                  <LinkHome />
                 </div>
               }
             />
@@ -108,6 +112,14 @@ function App() {
         </BrowserRouter>
       </FavoritesProvider>
     </AuthProvider>
+  );
+}
+
+function LinkHome() {
+  return (
+    <a href="/" className="mt-5 text-amber-900 underline">
+      กลับหน้าหลัก
+    </a>
   );
 }
 

@@ -2,14 +2,16 @@ import { createContext, useContext, useState } from "react";
 
 const AuthContext = createContext();
 
-const API_URL =
-  process.env.REACT_APP_API_URL || "http://127.0.0.1:8080";
+const API_URL = (
+  process.env.REACT_APP_API_URL || "http://127.0.0.1:8080"
+).replace(/\/+$/, "");
 
 // อ่าน Role จาก JWT
 function decodeToken(token) {
   try {
     const payload = token.split(".")[1];
     const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+
     return JSON.parse(atob(base64));
   } catch {
     return null;
@@ -42,6 +44,7 @@ export function AuthProvider({ children }) {
     }
   });
 
+  // Login
   const login = async (email, password) => {
     const response = await fetch(`${API_URL}/api/auth/login`, {
       method: "POST",
@@ -56,7 +59,7 @@ export function AuthProvider({ children }) {
 
     if (!response.ok) {
       if (response.status === 401) {
-        throw new Error("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
+        throw new Error("อีเมลหรือรหัสผ่านไม่ถูกต้อง หรือบัญชีถูกปิดใช้งาน");
       }
 
       const message = await response.text();
@@ -75,13 +78,15 @@ export function AuthProvider({ children }) {
       throw new Error("Token ไม่ถูกต้อง");
     }
 
+    // ใช้ชื่อจริงที่ Backend ส่งมาจากฐานข้อมูล
     const userData = {
       id: claims.sub,
-      email: email.trim().toLowerCase(),
-      name: email.trim().split("@")[0],
-      role: claims.role,
+      name: data.full_name || "สมาชิก",
+      email: data.email || email.trim().toLowerCase(),
+      role: data.role || claims.role,
     };
 
+    // Save to localStorage
     localStorage.setItem("cuppie-token", data.token);
     localStorage.setItem("cuppie-user", JSON.stringify(userData));
 
@@ -91,6 +96,7 @@ export function AuthProvider({ children }) {
     return data;
   };
 
+  // Logout
   const logout = () => {
     localStorage.removeItem("cuppie-token");
     localStorage.removeItem("cuppie-user");

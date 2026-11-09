@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import {
   NavLink,
@@ -6,12 +5,16 @@ import {
   useNavigate,
   useLocation,
 } from "react-router-dom";
+
 import { useAuth } from "../context/AuthContext";
 
 function Navbar() {
   const { user, isLoggedIn, logout } = useAuth();
+
   const navigate = useNavigate();
   const location = useLocation();
+
+  const isAdmin = user?.role === "admin";
 
   useEffect(() => {
     if (location.pathname === "/" && location.hash === "#categories") {
@@ -53,9 +56,11 @@ function Navbar() {
       <div className="bg-[#493629] text-[#F8EBDD] px-4 py-3">
         <div className="max-w-7xl mx-auto flex justify-between items-center text-[9px] md:text-[10px] tracking-[0.15em] font-medium">
           <span>WELCOME TO CUPPIE</span>
+
           <span className="hidden sm:block">
             DISCOVER YOUR LITTLE HAPPY PLACE
           </span>
+
           <span>YOUR CAFE COMPANION</span>
         </div>
       </div>
@@ -95,6 +100,23 @@ function Navbar() {
             >
               หมวดหมู่
             </button>
+
+            {/* ADMIN MENU */}
+            {isLoggedIn && isAdmin && (
+              <NavLink
+                to="/admin"
+                className={({ isActive }) =>
+                  `whitespace-nowrap transition ${
+                    isActive ||
+                    location.pathname.startsWith("/admin/")
+                      ? "text-amber-900 font-bold"
+                      : "text-[#A87852] font-semibold hover:text-amber-900"
+                  }`
+                }
+              >
+                Admin ⚙
+              </NavLink>
+            )}
           </div>
 
           {/* USER ACTIONS */}
@@ -102,10 +124,11 @@ function Navbar() {
             {isLoggedIn ? (
               <>
                 <span className="hidden sm:block text-sm text-amber-900 whitespace-nowrap">
-                  สวัสดี, {user.name}
+                  สวัสดี, {user?.name || "สมาชิก"}
                 </span>
 
                 <button
+                  type="button"
                   onClick={handleLogout}
                   className="bg-amber-900 text-white px-4 md:px-6 py-3 rounded-full text-xs md:text-sm hover:bg-amber-800 transition whitespace-nowrap"
                 >

@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
@@ -9,11 +10,11 @@ const API_URL = (
 ).replace(/\/+$/, "");
 
 const cafeImages = [
-  "https://images.unsplash.com/photo-1445116572660-236099ec97a0?w=1000",
-  "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1000",
-  "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=1000",
-  "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1000",
-  "https://images.unsplash.com/photo-1559925393-8be0ec4767c8?w=1000",
+  "https://images.unsplash.com/photo-1445116572660-236099ec97a0?w=1200",
+  "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1200",
+  "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=1200",
+  "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1200",
+  "https://images.unsplash.com/photo-1559925393-8be0ec4767c8?w=1200",
 ];
 
 function getCafeImage(cafe) {
@@ -32,13 +33,15 @@ function getCafeImage(cafe) {
 
 function CafeDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
+
   const [cafe, setCafe] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [imageSrc, setImageSrc] = useState("");
 
   const { toggleFavorite, isFavorite } = useFavorites();
   const { isLoggedIn } = useAuth();
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchCafe = async () => {
@@ -69,11 +72,14 @@ function CafeDetail() {
           return;
         }
 
-        setCafe({
+        const formattedCafe = {
           ...data,
           id: data.id,
           location: data.address || "ไม่ระบุที่อยู่",
-        });
+        };
+
+        setCafe(formattedCafe);
+        setImageSrc(getCafeImage(formattedCafe));
       } catch (err) {
         console.error("Cafe detail error:", err);
         setError(err.message || "เกิดข้อผิดพลาด");
@@ -91,7 +97,7 @@ function CafeDetail() {
     return (
       <div className="min-h-screen bg-[#FAF8F4]">
         <Navbar />
-        <div className="text-center py-24 text-gray-500">
+        <div className="text-center py-32 text-[#82766C]">
           กำลังโหลดข้อมูลคาเฟ่...
         </div>
       </div>
@@ -102,14 +108,21 @@ function CafeDetail() {
     return (
       <div className="min-h-screen bg-[#FAF8F4]">
         <Navbar />
-        <div className="text-center py-24">
-          <h1 className="text-2xl font-bold text-gray-800">
+
+        <div className="max-w-xl mx-auto text-center py-32 px-6">
+          <div className="text-5xl mb-5">☕</div>
+
+          <h1 className="text-2xl font-bold text-[#493629]">
             {error || "ไม่พบข้อมูลคาเฟ่"}
           </h1>
 
+          <p className="text-[#82766C] mt-3">
+            ขออภัย ไม่สามารถแสดงข้อมูลร้านนี้ได้
+          </p>
+
           <Link
             to="/cafes"
-            className="text-amber-900 mt-5 inline-block"
+            className="inline-block mt-6 bg-[#754A30] text-white px-7 py-3 rounded-full hover:bg-[#493629] transition"
           >
             กลับไปสำรวจคาเฟ่
           </Link>
@@ -123,7 +136,11 @@ function CafeDetail() {
   const handleFavorite = () => {
     if (!isLoggedIn) {
       navigate("/login", {
-        state: { from: { pathname: `/cafes/${cafe.id}` } },
+        state: {
+          from: {
+            pathname: `/cafes/${cafe.id}`,
+          },
+        },
       });
       return;
     }
@@ -146,8 +163,7 @@ function CafeDetail() {
     navigate(`/cafes/${cafe.id}/review`);
   };
 
-  const category =
-    cafe.category_name || cafe.category || "คาเฟ่";
+  const category = cafe.category_name || cafe.category || "คาเฟ่";
 
   const categoryNames = {
     "Café": "คาเฟ่",
@@ -155,84 +171,142 @@ function CafeDetail() {
     "Minimal Cafe": "มินิมอล",
     "Nature Cafe": "ธรรมชาติ",
     "Coffee & Bakery": "กาแฟและเบเกอรี่",
+    "Vintage Cafe": "วินเทจ",
+    "Pet Friendly": "คาเฟ่สัตว์เลี้ยง",
   };
+
+  const description =
+    cafe.description ||
+    "มาสัมผัสบรรยากาศดี ๆ พร้อมเครื่องดื่มและช่วงเวลาพักผ่อน เหมาะสำหรับคนที่กำลังมองหาสถานที่นั่งชิล และใช้เวลากับตัวเองหรือคนพิเศษ";
 
   return (
     <div className="min-h-screen bg-[#FAF8F4]">
       <Navbar />
 
-      <main className="px-6 md:px-16 py-12 max-w-6xl mx-auto">
+      <main className="max-w-7xl mx-auto px-5 md:px-10 py-10 md:py-14">
+
+        {/* Back Navigation */}
         <Link
           to="/cafes"
-          className="text-amber-900 hover:underline"
+          className="inline-flex items-center gap-2 text-[#82766C] hover:text-[#754A30] transition mb-8"
         >
-          ← กลับไปหน้าสำรวจคาเฟ่
+          <span>←</span>
+          <span>กลับไปหน้าสำรวจคาเฟ่</span>
         </Link>
 
-        <div className="grid md:grid-cols-2 gap-10 mt-8 items-start">
-          <img
-            src={getCafeImage(cafe)}
-            alt={cafe.name}
-            onError={(event) => {
-              event.currentTarget.src = cafeImages[0];
-            }}
-            className="w-full h-80 md:h-[450px] object-cover rounded-3xl shadow-sm"
-          />
+        {/* Cafe Detail */}
+        <section className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start">
 
-          <div>
-            <span className="text-sm text-amber-800 bg-amber-50 px-4 py-2 rounded-full">
-              {categoryNames[category] || category}
-            </span>
+          {/* Cafe Image */}
+          <div className="relative">
+            <div className="overflow-hidden rounded-[28px] shadow-sm">
+              <img
+                src={imageSrc}
+                alt={cafe.name || "Cafe"}
+                onError={() => {
+                  setImageSrc(cafeImages[0]);
+                }}
+                className="w-full h-[350px] sm:h-[450px] lg:h-[560px] object-cover"
+              />
+            </div>
 
-            <h1 className="text-4xl font-bold text-gray-800 mt-6">
+            <div className="absolute bottom-5 left-5 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full text-sm text-[#493629]">
+              ☕ Cuppie Cafe Guide
+            </div>
+          </div>
+
+          {/* Cafe Information */}
+          <div className="flex flex-col">
+
+            {/* Category */}
+            <div>
+              <span className="inline-block bg-[#F0E4D8] text-[#754A30] px-4 py-2 rounded-full text-sm font-medium">
+                {categoryNames[category] || category}
+              </span>
+            </div>
+
+            {/* Cafe Name */}
+            <h1 className="text-3xl md:text-4xl font-bold text-[#493629] leading-tight mt-6">
               {cafe.name}
             </h1>
 
-            <p className="text-gray-500 mt-4">
-              📍 {cafe.location}
-            </p>
-
-            {cafe.rating != null && (
-              <p className="text-gray-700 mt-4">
-                ⭐ คะแนน {cafe.rating} / 5
-              </p>
-            )}
-
-            {cafe.price && (
-              <p className="text-gray-700 mt-2">
-                ราคา {cafe.price}
-              </p>
-            )}
-
-            <div className="bg-white rounded-2xl p-6 mt-8">
-              <h2 className="text-xl font-semibold text-gray-800">
-                เกี่ยวกับคาเฟ่นี้
-              </h2>
-
-              <p className="text-gray-500 leading-relaxed mt-3">
-                มาสัมผัสบรรยากาศดี ๆ พร้อมเครื่องดื่มและช่วงเวลาพักผ่อน
-                เหมาะสำหรับคนที่กำลังมองหาสถานที่นั่งชิล
-                และใช้เวลากับตัวเองหรือคนพิเศษ
+            {/* Location */}
+            <div className="flex items-start gap-3 mt-5 text-[#82766C]">
+              <span className="text-lg">📍</span>
+              <p className="leading-relaxed">
+                {cafe.location}
               </p>
             </div>
 
-            <button
-              onClick={handleFavorite}
-              className="mt-6 w-full border border-amber-900 text-amber-900 py-3 rounded-full hover:bg-amber-50 transition"
-            >
-              {favorite
-                ? "♥ บันทึกเป็นรายการโปรดแล้ว"
-                : "♡ เพิ่มในรายการโปรด"}
-            </button>
+            {/* Rating and Price */}
+            {(cafe.rating != null || cafe.price) && (
+              <div className="flex flex-wrap gap-3 mt-6">
+                {cafe.rating != null && (
+                  <div className="bg-white border border-[#F0E4D8] rounded-xl px-5 py-3">
+                    <p className="text-xs text-[#82766C]">
+                      คะแนนร้าน
+                    </p>
+                    <p className="text-[#493629] font-semibold mt-1">
+                      ⭐ {cafe.rating} / 5
+                    </p>
+                  </div>
+                )}
 
-            <button
-              onClick={handleReview}
-              className="block text-center mt-4 w-full bg-amber-900 text-white py-3 rounded-full hover:bg-amber-800 transition"
-            >
-              เขียนรีวิว
-            </button>
+                {cafe.price && (
+                  <div className="bg-white border border-[#F0E4D8] rounded-xl px-5 py-3">
+                    <p className="text-xs text-[#82766C]">
+                      ช่วงราคา
+                    </p>
+                    <p className="text-[#493629] font-semibold mt-1">
+                      {cafe.price}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Description */}
+            <div className="bg-white rounded-2xl p-6 md:p-8 mt-8 border border-[#F0E4D8]">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">☕</span>
+
+                <h2 className="text-xl font-semibold text-[#493629]">
+                  เกี่ยวกับคาเฟ่นี้
+                </h2>
+              </div>
+
+              <p className="text-[#82766C] leading-8 mt-4">
+                {description}
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col gap-3 mt-7">
+              <button
+                type="button"
+                onClick={handleFavorite}
+                className={`w-full py-4 rounded-full border transition font-medium ${
+                  favorite
+                    ? "bg-[#F0E4D8] border-[#754A30] text-[#754A30]"
+                    : "bg-transparent border-[#754A30] text-[#754A30] hover:bg-[#F0E4D8]"
+                }`}
+              >
+                {favorite
+                  ? "♥ บันทึกเป็นรายการโปรดแล้ว"
+                  : "♡ เพิ่มในรายการโปรด"}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleReview}
+                className="w-full py-4 rounded-full bg-[#754A30] text-white hover:bg-[#493629] transition font-medium"
+              >
+                ✎ เขียนรีวิว
+              </button>
+            </div>
           </div>
-        </div>
+        </section>
+
       </main>
     </div>
   );

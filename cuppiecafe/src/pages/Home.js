@@ -4,8 +4,9 @@ import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import CafeCard from "../components/CafeCard";
 
-const API_URL =
-  process.env.REACT_APP_API_URL || "http://127.0.0.1:8080";
+const API_URL = (
+  process.env.REACT_APP_API_URL || "http://127.0.0.1:8080"
+).replace(/\/+$/, "");
 
 function ArrowIcon() {
   return (
@@ -47,18 +48,29 @@ function Home() {
           throw new Error("รูปแบบข้อมูลไม่ถูกต้อง");
         }
 
-        const formattedCafes = data.map((cafe) => ({
-          ...cafe,
-          id: cafe.fsq_id || cafe.id || cafe.name,
-          location:
-            [
-              cafe.address,
-              cafe.locality,
-              cafe.region,
-            ]
-              .filter(Boolean)
-              .join(", ") || "ไม่ระบุที่อยู่",
-        }));
+        const formattedCafes = data
+          .filter((cafe) => cafe.id || cafe.fsq_id)
+          .map((cafe) => ({
+            ...cafe,
+
+            // ใช้ ID จากฐานข้อมูลก่อน เพื่อให้หน้า Detail ค้นหาร้านได้
+            id: cafe.id || cafe.fsq_id,
+
+            // เก็บ Foursquare ID แยกไว้
+            fsq_id: cafe.fsq_id || null,
+
+            location:
+              [
+                cafe.address,
+                cafe.locality,
+                cafe.region,
+              ]
+                .filter(Boolean)
+                .join(", ") || "ไม่ระบุที่อยู่",
+          }));
+
+        console.log("Home cafe data:", data);
+        console.log("Formatted cafe data:", formattedCafes);
 
         setCafes(formattedCafes);
       } catch (err) {
