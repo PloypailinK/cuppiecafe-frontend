@@ -1,9 +1,29 @@
 
-import { createContext, useContext, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+
+import { useAuth } from "./AuthContext";
 
 const FavoritesContext = createContext();
 
-const STORAGE_KEY = "cuppie-favorites";
+const STORAGE_PREFIX = "cuppie-favorites";
+
+// สร้าง Key แยกตามบัญชี
+function getStorageKey(user) {
+  if (!user) return null;
+
+  const accountId = user.id || user.email;
+
+  if (!accountId) return null;
+
+  return `${STORAGE_PREFIX}:${encodeURIComponent(
+    String(accountId).toLowerCase()
+  )}`;
+}
 
 // สร้างข้อความสำหรับเปรียบเทียบชื่อร้านและที่อยู่
 function normalizeText(value) {
@@ -18,7 +38,6 @@ function isSameCafe(a, b) {
   const idA = a.id ?? a.fsq_id;
   const idB = b.id ?? b.fsq_id;
 
-  // ถ้ามี ID เดียวกัน ถือว่าเป็นร้านเดียวกัน
   if (
     idA != null &&
     idB != null &&
@@ -27,7 +46,6 @@ function isSameCafe(a, b) {
     return true;
   }
 
-  // เปรียบเทียบชื่อร้านและที่อยู่
   const nameA = normalizeText(a.name);
   const nameB = normalizeText(b.name);
 
@@ -64,10 +82,12 @@ function removeDuplicateFavorites(items) {
   return unique;
 }
 
-// โหลดข้อมูลและล้างรายการซ้ำเดิม
-function loadFavorites() {
+// โหลด Favorites ของสมาชิก
+function loadFavorites(storageKey) {
+  if (!storageKey) return [];
+
   try {
-    const savedFavorites = localStorage.getItem(STORAGE_KEY);
+    const savedFavorites = localStorage.getItem(storageKey);
 
     if (!savedFavorites) {
       return [];
@@ -82,7 +102,7 @@ function loadFavorites() {
     const cleaned = removeDuplicateFavorites(parsed);
 
     localStorage.setItem(
-      STORAGE_KEY,
+      storageKey,
       JSON.stringify(cleaned)
     );
 
@@ -94,12 +114,31 @@ function loadFavorites() {
 }
 
 export function FavoritesProvider({ children }) {
-  const [favorites, setFavorites] = useState(loadFavorites);
+  const { user, isLoggedIn } = useAuth();
 
+  const [favorites, setFavorites] = useState([]);
+
+  const storageKey = isLoggedIn
+    ? getStorageKey(user)
+    : null;
+
+  // โหลด Favorites เมื่อเปลี่ยนบัญชีหรือ Login
+  useEffect(() => {
+    if (!storageKey) {
+      setFavorites([]);
+      return;
+    }
+
+    setFavorites(loadFavorites(storageKey));
+  }, [storageKey]);
+
+  // บันทึก Favorites ของบัญชีปัจจุบัน
   const saveFavorites = (updated) => {
+    if (!storageKey) return;
+
     try {
       localStorage.setItem(
-        STORAGE_KEY,
+        storageKey,
         JSON.stringify(updated)
       );
     } catch (error) {
@@ -107,7 +146,12 @@ export function FavoritesProvider({ children }) {
     }
   };
 
+  // เพิ่มหรือนำร้านออกจากรายการโปรด
   const toggleFavorite = (cafe) => {
+    if (!isLoggedIn || !storageKey || !cafe) {
+      return;
+    }
+
     setFavorites((prev) => {
       const exists = prev.some((item) =>
         isSameCafe(item, cafe)
@@ -139,8 +183,11 @@ export function FavoritesProvider({ children }) {
     });
   };
 
-  const isFavorite = (cafeOrId) =>
-    favorites.some((item) => {
+  // ตรวจสอบว่าร้านอยู่ในรายการโปรดหรือไม่
+  const isFavorite = (cafeOrId) => {
+    if (!isLoggedIn) return false;
+
+    return favorites.some((item) => {
       if (
         typeof cafeOrId === "object" &&
         cafeOrId !== null
@@ -153,8 +200,12 @@ export function FavoritesProvider({ children }) {
         String(item.fsq_id) === String(cafeOrId)
       );
     });
+  };
 
+  // ลบรายการโปรด
   const removeFavorite = (id) => {
+    if (!isLoggedIn || !storageKey) return;
+
     setFavorites((prev) => {
       const updated = prev.filter(
         (item) =>
@@ -171,7 +222,7 @@ export function FavoritesProvider({ children }) {
   return (
     <FavoritesContext.Provider
       value={{
-        favorites,
+        favorites: isLoggedIn ? favorites : [],
         toggleFavorite,
         isFavorite,
         removeFavorite,

@@ -1,6 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+
 import Navbar from "../components/Navbar";
 import CafeCard from "../components/CafeCard";
 
@@ -27,7 +28,6 @@ function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // ดึงข้อมูลคาเฟ่จาก Foursquare ผ่าน Backend
   useEffect(() => {
     const fetchCafes = async () => {
       try {
@@ -52,13 +52,8 @@ function Home() {
           .filter((cafe) => cafe.id || cafe.fsq_id)
           .map((cafe) => ({
             ...cafe,
-
-            // ใช้ ID จากฐานข้อมูลก่อน เพื่อให้หน้า Detail ค้นหาร้านได้
             id: cafe.id || cafe.fsq_id,
-
-            // เก็บ Foursquare ID แยกไว้
             fsq_id: cafe.fsq_id || null,
-
             location:
               [
                 cafe.address,
@@ -68,9 +63,6 @@ function Home() {
                 .filter(Boolean)
                 .join(", ") || "ไม่ระบุที่อยู่",
           }));
-
-        console.log("Home cafe data:", data);
-        console.log("Formatted cafe data:", formattedCafes);
 
         setCafes(formattedCafes);
       } catch (err) {
@@ -87,24 +79,28 @@ function Home() {
   const categories = [
     {
       name: "มินิมอล",
+      query: "มินิมอล",
       description: "เรียบง่าย สบายตา",
       image:
         "https://images.unsplash.com/photo-1445116572660-236099ec97a0?w=900",
     },
     {
       name: "ธรรมชาติ",
+      query: "ธรรมชาติ",
       description: "พักผ่อนท่ามกลางธรรมชาติ",
       image:
         "https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=900",
     },
     {
       name: "วินเทจ",
+      query: "Vintage",
       description: "เสน่ห์ที่เหนือกาลเวลา",
       image:
         "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=900",
     },
     {
       name: "คาเฟ่สัตว์เลี้ยง",
+      query: "Pet Friendly",
       description: "ใช้เวลากับเพื่อนตัวน้อย",
       image:
         "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=900",
@@ -153,6 +149,7 @@ function Home() {
               <div className="w-12 h-12 shrink-0 rounded-full bg-[#F0E4D8] flex items-center justify-center text-2xl">
                 ☕
               </div>
+
               <div>
                 <p className="text-sm font-semibold">
                   Your moment, your cafe.
@@ -205,9 +202,11 @@ function Home() {
               <p className="text-[10px] tracking-[0.2em] font-semibold text-[#98765B]">
                 EXPLORE YOUR STYLE
               </p>
+
               <h2 className="text-3xl md:text-4xl font-bold mt-3">
                 คาเฟ่ในแบบที่คุณชอบ
               </h2>
+
               <p className="text-sm text-[#82766C] mt-2">
                 เลือกบรรยากาศที่ใช่ แล้วออกไปค้นพบสถานที่ใหม่ ๆ
               </p>
@@ -224,7 +223,7 @@ function Home() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {categories.map((category) => (
               <Link
-                to="/cafes"
+                to={`/cafes?category=${encodeURIComponent(category.query)}`}
                 key={category.name}
                 className="group bg-white rounded-3xl overflow-hidden border border-[#EEE5DC] shadow-sm hover:shadow-lg transition duration-300"
               >
@@ -234,6 +233,7 @@ function Home() {
                     alt={category.name}
                     className="w-full h-48 object-cover group-hover:scale-105 transition duration-500"
                   />
+
                   <span className="absolute top-3 right-3 w-10 h-10 rounded-full bg-[#FAF3EA] text-[#754A30] flex items-center justify-center shadow-sm group-hover:bg-[#754A30] group-hover:text-white transition">
                     <ArrowIcon />
                   </span>
@@ -246,6 +246,7 @@ function Home() {
                     </h3>
                     <span className="text-[#A87852]">→</span>
                   </div>
+
                   <p className="text-sm text-[#96877A] mt-2">
                     {category.description}
                   </p>
@@ -264,9 +265,11 @@ function Home() {
               <p className="text-[10px] tracking-[0.2em] font-semibold text-[#98765B]">
                 HANDPICKED FOR YOU
               </p>
+
               <h2 className="text-3xl md:text-4xl font-bold mt-3">
                 คาเฟ่แนะนำ
               </h2>
+
               <p className="text-sm text-[#82766C] mt-2">
                 ร้านน่าสนใจจากคาเฟ่ในนครปฐม
               </p>

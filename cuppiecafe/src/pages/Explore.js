@@ -1,5 +1,7 @@
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+
 import Navbar from "../components/Navbar";
 import CafeCard from "../components/CafeCard";
 
@@ -16,7 +18,6 @@ const CATEGORIES = [
   "Pet Friendly",
 ];
 
-// ใช้สไตล์ที่ API มีอยู่ก่อน หากไม่มีจะจัดหมวดหมู่สำหรับแสดงตัวอย่าง
 const DEMO_STYLES = [
   "มินิมอล",
   "ธรรมชาติ",
@@ -24,8 +25,22 @@ const DEMO_STYLES = [
   "Vintage",
 ];
 
+function normalizeCategory(value) {
+  if (!value) return "ทั้งหมด";
+
+  const aliases = {
+    "วินเทจ": "Vintage",
+    "คาเฟ่สัตว์เลี้ยง": "Pet Friendly",
+  };
+
+  const normalized = aliases[value] || value;
+
+  return CATEGORIES.includes(normalized)
+    ? normalized
+    : "ทั้งหมด";
+}
+
 function getCafeStyles(cafe, index) {
-  // ใช้ข้อมูลสไตล์ที่มีอยู่จริงก่อน
   const existingStyles = [
     ...(Array.isArray(cafe.styles) ? cafe.styles : []),
     ...(Array.isArray(cafe.tags) ? cafe.tags : []),
@@ -37,7 +52,6 @@ function getCafeStyles(cafe, index) {
     return existingStyles;
   }
 
-  // ตรวจคำบ่งบอกจากชื่อและรายละเอียดร้าน
   const text = [
     cafe.name,
     cafe.description,
@@ -70,8 +84,6 @@ function getCafeStyles(cafe, index) {
     styles.push("Pet Friendly");
   }
 
-  // ข้อมูลจาก Foursquare ไม่มีสไตล์ร้าน:
-  // ใช้หมวดหมู่ตัวอย่างชั่วคราวสำหรับร้านที่ยังไม่ได้กำหนด
   if (styles.length === 0) {
     styles.push(DEMO_STYLES[index % DEMO_STYLES.length]);
   }
@@ -82,9 +94,15 @@ function getCafeStyles(cafe, index) {
 function Explore() {
   const [cafes, setCafes] = useState([]);
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("ทั้งหมด");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // อ่านหมวดหมู่จาก URL
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const category = normalizeCategory(
+    searchParams.get("category")
+  );
 
   useEffect(() => {
     const fetchCafes = async () => {
@@ -118,7 +136,9 @@ function Explore() {
               [
                 cafe.locality,
                 cafe.region,
-              ].filter(Boolean).join(", ") ||
+              ]
+                .filter(Boolean)
+                .join(", ") ||
               "ไม่ระบุที่อยู่",
             styles: getCafeStyles(cafe, index),
           }));
@@ -137,6 +157,15 @@ function Explore() {
     fetchCafes();
   }, []);
 
+  // เปลี่ยนหมวดหมู่และ URL พร้อมกัน
+  const handleCategoryChange = (item) => {
+    if (item === "ทั้งหมด") {
+      setSearchParams({});
+    } else {
+      setSearchParams({ category: item });
+    }
+  };
+
   const filteredCafes = cafes.filter((cafe) => {
     const keyword = search.toLowerCase().trim();
 
@@ -146,7 +175,10 @@ function Explore() {
 
     const matchCategory =
       category === "ทั้งหมด" ||
-      cafe.styles.includes(category);
+      cafe.styles.some(
+        (style) =>
+          normalizeCategory(style) === category
+      );
 
     return matchName && matchCategory;
   });
@@ -183,7 +215,7 @@ function Explore() {
             <button
               key={item}
               type="button"
-              onClick={() => setCategory(item)}
+              onClick={() => handleCategoryChange(item)}
               className={`px-5 py-2 rounded-full transition ${
                 category === item
                   ? "bg-amber-900 text-white"
@@ -200,7 +232,9 @@ function Explore() {
           <h2 className="text-2xl font-bold text-gray-800">
             {search
               ? `ผลการค้นหา "${search}"`
-              : "คาเฟ่ทั้งหมด"}
+              : category === "ทั้งหมด"
+                ? "คาเฟ่ทั้งหมด"
+                : `คาเฟ่หมวด${category}`}
           </h2>
 
           <p className="text-gray-500 text-sm mt-2">
@@ -253,7 +287,7 @@ function Explore() {
             <button
               onClick={() => {
                 setSearch("");
-                setCategory("ทั้งหมด");
+                handleCategoryChange("ทั้งหมด");
               }}
               className="mt-4 text-amber-900 underline"
             >
