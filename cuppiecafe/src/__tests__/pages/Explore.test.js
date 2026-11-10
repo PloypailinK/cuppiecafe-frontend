@@ -10,7 +10,7 @@ test("โหลดและแสดงรายการคาเฟ่จา�
  global.fetch.mockResolvedValue({ok:true,json:async()=>[{id:"1",name:"Minimal Cafe",address:"Bangkok"}]});
  render(<MemoryRouter><Explore/></MemoryRouter>);
  expect(await screen.findByText("Minimal Cafe")).toBeInTheDocument();
- expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining("/api/foursquare/cafes?query=coffee"));
+expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining("/api/cafes"));
 });
 test("ค้นหาคาเฟ่จากชื่อร้าน",async()=>{
  global.fetch.mockResolvedValue({ok:true,json:async()=>[{id:"1",name:"Minimal Cafe"},{id:"2",name:"Nature House"}]});
