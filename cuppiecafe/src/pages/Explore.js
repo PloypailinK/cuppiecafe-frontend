@@ -103,7 +103,7 @@ function Explore() {
   const category = normalizeCategory(
     searchParams.get("category")
   );
-
+//useEffect
   useEffect(() => {
     const fetchCafes = async () => {
       try {
@@ -111,7 +111,7 @@ function Explore() {
         setError("");
 
         const response = await fetch(
-          `${API_URL}/api/foursquare/cafes?query=coffee`
+          `${API_URL}/api/cafes`
         );
 
         if (!response.ok) {

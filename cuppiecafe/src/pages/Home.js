@@ -34,8 +34,8 @@ function Home() {
         setLoading(true);
         setError("");
 
-        const response = await fetch(
-          `${API_URL}/api/foursquare/cafes?query=coffee`
+       const response = await fetch(
+          `${API_URL}/api/cafes`
         );
 
         if (!response.ok) {
