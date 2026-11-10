@@ -29,7 +29,7 @@ function WriteReview() {
         setFetchError("");
 
         const response = await fetch(
-          `${API_URL}/api/foursquare/cafes?query=coffee`
+          `${API_URL}/api/cafes`
         );
 
         if (!response.ok) {
@@ -222,11 +222,10 @@ function WriteReview() {
                       type="button"
                       onClick={() => setRating(star)}
                       aria-label={`ให้ ${star} คะแนน`}
-                      className={`text-4xl transition ${
-                        star <= rating
+                      className={`text-4xl transition ${star <= rating
                           ? "text-amber-400"
                           : "text-gray-300"
-                      }`}
+                        }`}
                     >
                       ★
                     </button>
